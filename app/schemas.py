@@ -82,7 +82,6 @@ class OptimizationResult(BaseModel):
                 raise ValueError("An Optimal solution must have a objective value")
 
         return self
-    
 
 
 
