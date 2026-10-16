@@ -15,12 +15,9 @@ class OptimizationService:
         num_dcs = len(request.capacity)
 
         # TODO 2:
-        message = f"There are 2 DCs and 3 stores"
+        message = f"There are {num_dcs} DCs and {num_stores} stores"
 
-        # TODO 3:
-        status = "accepted"
-
-        response = OptimizationResponse(status=status, message=message)
+        response = OptimizationResponse(status="accepted", message=message)
 
         return response
     
