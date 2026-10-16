@@ -79,7 +79,7 @@ class OptimizationResult(BaseModel):
     def validate_solver_result(self):
         if self.solver_status == SolverStatus.OPTIMAL:
             if self.objective_value is None:
-                raise ValueError("An Optimal solution must have a objetive value")
+                raise ValueError("An Optimal solution must have a objective value")
 
         return self
     
