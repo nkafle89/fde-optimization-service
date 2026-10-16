@@ -8,22 +8,32 @@ from app.exceptions import (
     OptimizationServiceError,
 )
 
-from app.main import app
-
 
 @pytest.fixture
 def client():
-    @app.get("/test/job-not-found")
+    test_app = FastAPI()
+
+    test_app.add_exception_handler(
+        JobNotFoundError,
+        test_job_not_found_handler
+    )
+
+    test_app.add_exception_handler(
+        OptimizationServiceError,
+        test_optimization_service_error_handler
+    )
+
+    @test_app.get("/test/job-not-found")
     def trigger_job_not_found():
         raise JobNotFoundError("job_999")
 
-    @app.get("/test/service-error")
+    @test_app.get("/test/service-error")
     def trigger_service_errror():
         raise OptimizationServiceError(
             "Database password leaked"
         )
 
-    return TestClient(app)
+    return TestClient(test_app)
 
 def test_job_not_found_handler(client):
     response = client.get("/test/job-not-found")
