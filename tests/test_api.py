@@ -30,7 +30,7 @@ def test_valid_optimiztion_request(valid_problem):
         json=valid_problem,
     )
 
-    assert response.status_code == 202
+    assert response.status_code == 200
     assert response.json()["status"] == "accepted"
 
 

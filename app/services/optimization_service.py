@@ -20,4 +20,7 @@ class OptimizationService:
         response = OptimizationResponse(status="accepted", message=message)
 
         return response
-    
+
+
+def get_optimization_service() -> OptimizationService:
+    return OptimizationService()
