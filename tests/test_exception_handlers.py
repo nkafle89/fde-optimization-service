@@ -8,6 +8,10 @@ from app.exceptions import (
     OptimizationServiceError,
 )
 
+from app.main import (
+    job_not_found_handler,
+    optimization_error_handler
+)
 
 @pytest.fixture
 def client():
@@ -15,12 +19,12 @@ def client():
 
     test_app.add_exception_handler(
         JobNotFoundError,
-        test_job_not_found_handler
+        job_not_found_handler
     )
 
     test_app.add_exception_handler(
         OptimizationServiceError,
-        test_optimization_service_error_handler
+        optimization_error_handler
     )
 
     @test_app.get("/test/job-not-found")
