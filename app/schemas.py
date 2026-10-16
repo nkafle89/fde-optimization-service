@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
 import math
+from enum import Enum
 
 
 class OptimizationRequest(BaseModel):
@@ -51,7 +52,47 @@ class OptimizationRequest(BaseModel):
 
         return self
 
+class JobStatus(str, Enum):
+    ACCEPTED = "accepted"
+    RUNNING = "running"
+    FINISHED = "finished"
+    FAILED = "failed"
 
+
+class SolverStatus(str, Enum):
+    OPTIMAL = "optimal"
+    FEASIBLE_TIME_LIMIT = "feasible_time_limit"
+    INFEASIBLE = "infeasible"
+    NO_SOLUTION = "no_solution"
+    ERROR = "error"
+
+
+class OptimizationResult(BaseModel):
+    solver_status: SolverStatus
+
+    objective_value: float | None = None
+    best_bound: float | None = None
+    optimality_gap: float | None = Field(default=None, ge=0)
+    solve_time_seconds: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode='after')
+    def validate_solver_result(self):
+        if self.solver_status == SolverStatus.OPTIMAL:
+            if self.objective_value is None:
+                raise ValueError("An Optimal solution must have a objetive value")
+
+        return self
+    
+
+
+
+class JobResponse(BaseModel):
+    job_id: str
+    status: JobStatus
+    message: str
+    result: OptimizationResult | None = None
+
+    
 class OptimizationResponse(BaseModel):
     status: str
     message: str
