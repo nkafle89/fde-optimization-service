@@ -54,6 +54,7 @@ class TransportationAgent:
     def __init__(self, client: OpenAI | None = None):
         self.client = client or OpenAI()
 
+
     def run(self, user_message: str) -> str:
         response = self.client.responses.create(
             model="gpt-4o-mini",
@@ -66,48 +67,54 @@ class TransportationAgent:
             tools=TOOLS,
         )
 
-        #Preserve the model's tool-call messages.
-        conversation = [
-            {"role": "user", "content": user_message},
-            *response.output,
-        ]
+        for _ in range(5):
+            tool_calls = [
+                item for item in response.output
+                if item.type == "function_call"
+            ]
 
-        for item in response.output:
-            if item.type != "function_call":
-                continue
-
-            arguments = json.loads(item.arguments)
-
-            if item.name == "calculate_total_demand":
-                result = calculate_total_demand(arguments["demand"])
-            elif item.name == " check_capacity_feasibility":
-                result = check_capacity_feasibility(
-                    demand=arguments["demand"],
-                    capacity=arguments["capacity"],
-                    )
-            else:
-                raise ValueError(f"Unknown tool: {item.name}")
-
-            conversation.append(
-                {
-                    "type": "function_call_output",
-                    "call_id": item.call_id,
-                    "output": json.dumps({"total_demand": result}),
-                }
-            )
-
-            if not any(
-                item.type == "function_call" for item in response.output
-            ):
+            if not tool_calls:
                 return response.output_text
 
-            final_response = self.client.responses.create(
+            tool_outputs = []
+
+            for item in tool_calls:
+                arguments = json.loads(item.arguments)
+
+                if item.name == "calculate_total_demand":
+                    result = {
+                        "total_demand": calculate_total_demand(
+                            arguments["demand"]
+                        )
+                    }
+
+                elif item.name == "check_capacity_feasibility":
+                    result = check_capacity_feasibility(
+                        demand=arguments["demand"],
+                        capacity=arguments["capacity"],
+                    )
+
+                else:
+                    raise ValueError(
+                        f"Unknown tool: {item.name}"
+                    )
+
+                tool_outputs.append({
+                    "type": "function_call_output",
+                    "call_id": item.call_id,
+                    "output": json.dumps(result),
+                })
+
+            response = self.client.responses.create(
                 model="gpt-4o-mini",
-                instructions=(
-                    "Answer using the results returned by the tools."
-                ),
-                input=conversation,
+                previous_response_id=response.id,
+                input=tool_outputs,
                 tools=TOOLS,
             )
 
-            return final_response.output_text
+        raise RuntimeError(
+            "Agent exceeded maximum tool-calling iterations"
+        )
+
+
+        

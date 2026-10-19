@@ -1,21 +1,35 @@
 import math
 
 
-def calculate_total_demand(demand: list[float]) -> float:
-    if not demand:
-        raise ValueError("Demand cannot be empty")
-    if any(d < 0 for d in demand):
-        raise ValueError("Demand cannot be negative")
+def sum_nonnegative_values(
+    values: list[float],
+    field_name: str,
+) -> float:
+    if not values:
+        raise ValueError(f"{field_name} cannot be empty")
 
-    return sum(demand)
+    if any(not math.isfinite(v) for v in values):
+        raise ValueError(f"{field_name} must be finite")
+
+    if any(v < 0 for v in values):
+        raise ValueError(f"{field_name} cannot be negative")
+
+    return sum(values)
+
+
+def calculate_total_demand(demand: list[float]) -> float:
+    return sum_nonnegative_values(demand, "Demand")
 
 
 def check_capacity_feasibility(
-        demand: list[float],
-        capacity: list[float],
+    demand: list[float],
+    capacity: list[float],
 ) -> dict:
     total_demand = calculate_total_demand(demand)
-    total_capacity = sum(capacity)
+    total_capacity = sum_nonnegative_values(
+        capacity, "Capacity"
+    )
+
     return {
         "total_demand": total_demand,
         "total_capacity": total_capacity,
