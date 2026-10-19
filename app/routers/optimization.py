@@ -1,4 +1,3 @@
-from fastapi import APIRouter, status
 from app.schemas import OptimizationRequest, OptimizationResponse
 from app.services.optimization_service import OptimizationService, get_optimization_service
 from fastapi import APIRouter, Depends, status
